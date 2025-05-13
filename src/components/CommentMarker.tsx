@@ -43,6 +43,3 @@ const CommentMarker: React.FC<CommentMarkerProps> = ({ comment }) => {
 };
 
 export default CommentMarker;
-
-// Add date-fns package
-<lov-add-dependency>date-fns</lov-add-dependency>

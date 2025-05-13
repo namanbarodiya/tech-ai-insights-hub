@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { saveReaction, getArticleReactions } from '@/services/openAiApi';
-import { ThumbsUp, Brain, Clap } from 'lucide-react';
+import { ThumbsUp, Brain, Bell } from 'lucide-react';
 
 interface ReactionButtonsProps {
   articleUrl: string;
@@ -57,7 +57,7 @@ const ReactionButtons: React.FC<ReactionButtonsProps> = ({ articleUrl }) => {
         className="flex items-center gap-1" 
         onClick={() => handleReaction('clap')}
       >
-        <Clap className="h-4 w-4" />
+        <Bell className="h-4 w-4" />
         <span>{reactions.clap > 0 ? reactions.clap : ''}</span>
       </Button>
     </div>

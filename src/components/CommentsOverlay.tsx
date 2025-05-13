@@ -72,6 +72,3 @@ const CommentsOverlay: React.FC<CommentsOverlayProps> = ({
 };
 
 export default CommentsOverlay;
-
-// Add the uuid package
-<lov-add-dependency>uuid</lov-add-dependency>
