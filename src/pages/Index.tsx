@@ -1,12 +1,120 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useState, useEffect } from 'react';
+import Header from '@/components/Header';
+import ArticleCard from '@/components/ArticleCard';
+import AISummaryModal from '@/components/AISummaryModal';
+import { fetchTopTechNews, NewsArticle, TECH_CATEGORIES } from '@/services/newsApi';
+import { toast } from "sonner";
 
 const Index = () => {
+  const [allArticles, setAllArticles] = useState<NewsArticle[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
+  const [summaryModalOpen, setSummaryModalOpen] = useState<boolean>(false);
+
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const articles = await fetchTopTechNews();
+        setAllArticles(articles);
+      } catch (error) {
+        console.error('Error fetching articles:', error);
+        toast.error('Failed to load articles');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  // Divide articles into sections
+  const getForYouArticles = () => allArticles.slice(0, 3);
+  const getTrendingArticles = () => allArticles.slice(3, 6);
+  const getTopPicksArticles = () => allArticles.slice(6, 9);
+
+  // Handle summary button click
+  const handleSummaryClick = (article: NewsArticle) => {
+    setSelectedArticle(article);
+    setSummaryModalOpen(true);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+
+      <main className="container px-4 py-6 md:py-8">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-[400px] bg-gray-200 rounded-lg animate-pulse" />
+            ))}
+          </div>
+        ) : (
+          <>
+            {/* For You Section */}
+            <section className="mb-10">
+              <div className="flex items-center mb-4">
+                <h2 className="text-2xl font-bold">For You</h2>
+                <span className="text-sm text-gray-500 ml-4">Personalized to your interests</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getForYouArticles().map((article) => (
+                  <ArticleCard
+                    key={article.url}
+                    article={article}
+                    category="AI & Tech"
+                    onSummaryClick={() => handleSummaryClick(article)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* Trending in Your Industry */}
+            <section className="mb-10">
+              <div className="flex items-center mb-4">
+                <h2 className="text-2xl font-bold">Trending in Your Industry</h2>
+                <span className="text-sm text-gray-500 ml-4">Top stories in Enterprise Technology</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getTrendingArticles().map((article, index) => (
+                  <ArticleCard
+                    key={article.url}
+                    article={article}
+                    category={TECH_CATEGORIES[index % TECH_CATEGORIES.length]}
+                    onSummaryClick={() => handleSummaryClick(article)}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {/* Editor's Top 5 Picks */}
+            <section className="mb-10">
+              <div className="flex items-center mb-4">
+                <h2 className="text-2xl font-bold">Top 5 Picks</h2>
+                <span className="text-sm text-gray-500 ml-4">Editor's selection of must-read stories</span>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {getTopPicksArticles().map((article, index) => (
+                  <ArticleCard
+                    key={article.url}
+                    article={article}
+                    category="Featured"
+                    onSummaryClick={() => handleSummaryClick(article)}
+                  />
+                ))}
+              </div>
+            </section>
+          </>
+        )}
+      </main>
+
+      {/* AI Summary Modal */}
+      <AISummaryModal
+        article={selectedArticle}
+        isOpen={summaryModalOpen}
+        onClose={() => setSummaryModalOpen(false)}
+      />
     </div>
   );
 };
