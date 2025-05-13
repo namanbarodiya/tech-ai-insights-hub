@@ -1,5 +1,6 @@
 
 import { toast } from "sonner";
+import { mockTechArticles, getTopTechArticles, searchArticles } from './mockNewsData';
 
 export interface NewsArticle {
   source: {
@@ -32,15 +33,16 @@ export const fetchTopTechNews = async (): Promise<NewsArticle[]> => {
     );
     
     if (!response.ok) {
-      throw new Error(`News API error: ${response.status}`);
+      console.log(`Using mock data due to API error: ${response.status}`);
+      return getTopTechArticles();
     }
     
     const data: NewsResponse = await response.json();
     return data.articles.filter(article => article.urlToImage !== null);
   } catch (error) {
     console.error("Error fetching tech news:", error);
-    toast.error("Failed to load latest news");
-    return [];
+    toast.error("Using mock data instead of live API");
+    return getTopTechArticles();
   }
 };
 
@@ -52,15 +54,16 @@ export const fetchNewsBySearch = async (query: string): Promise<NewsArticle[]> =
     );
     
     if (!response.ok) {
-      throw new Error(`News API error: ${response.status}`);
+      console.log(`Using mock search data due to API error: ${response.status}`);
+      return searchArticles(query);
     }
     
     const data: NewsResponse = await response.json();
     return data.articles.filter(article => article.urlToImage !== null);
   } catch (error) {
     console.error(`Error searching news for "${query}":`, error);
-    toast.error("Failed to search news");
-    return [];
+    toast.error("Using mock search results");
+    return searchArticles(query);
   }
 };
 

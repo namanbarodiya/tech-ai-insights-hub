@@ -11,12 +11,22 @@ const Index = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedArticle, setSelectedArticle] = useState<NewsArticle | null>(null);
   const [summaryModalOpen, setSummaryModalOpen] = useState<boolean>(false);
+  const [usingMockData, setUsingMockData] = useState<boolean>(false);
 
   useEffect(() => {
     const fetchArticles = async () => {
       try {
         const articles = await fetchTopTechNews();
         setAllArticles(articles);
+        
+        // Check if we're using mock data by looking at the first article's URL
+        if (articles[0]?.url.includes('picsum.photos')) {
+          setUsingMockData(true);
+          toast.info("Using mock data due to News API restrictions", {
+            duration: 6000,
+            description: "News API free plan only works on localhost"
+          });
+        }
       } catch (error) {
         console.error('Error fetching articles:', error);
         toast.error('Failed to load articles');
@@ -44,6 +54,13 @@ const Index = () => {
       <Header />
 
       <main className="container px-4 py-6 md:py-8">
+        {usingMockData && (
+          <div className="mb-6 p-4 bg-yellow-50 border border-yellow-100 rounded-md text-sm">
+            <p className="font-medium">⚠️ Using mock data instead of live News API</p>
+            <p className="text-gray-600">The free News API plan only allows requests from localhost, not deployed applications.</p>
+          </div>
+        )}
+
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((i) => (
