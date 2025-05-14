@@ -301,6 +301,7 @@ const ArticleDetail = () => {
             selectedText={selectedText}
             textPosition={textPosition}
             onClose={() => setShowCommentOverlay(false)}
+            articleContent={article.content || article.description || ''}
           />
         </div>
       )}
