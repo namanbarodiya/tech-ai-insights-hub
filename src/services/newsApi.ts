@@ -22,7 +22,7 @@ export interface NewsResponse {
   articles: NewsArticle[];
 }
 
-const NEWS_API_KEY = "0b482b6aaefd47409008c612c94234fa";
+const NEWS_API_KEY = "54b1aea0bb8e4d6390924c9afa0e185b";
 const BASE_URL = "https://newsapi.org/v2";
 
 // Fetch top headlines
