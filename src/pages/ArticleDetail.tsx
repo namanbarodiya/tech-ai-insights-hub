@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useLocation, useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -6,9 +5,10 @@ import Header from '@/components/Header';
 import AISummaryModal from '@/components/AISummaryModal';
 import AskAIDialog from '@/components/AskAIDialog';
 import CommentsOverlay from '@/components/CommentsOverlay';
+import CommentsList from '@/components/CommentsList';
 import CommentMarker from '@/components/CommentMarker';
 import ReactionButtons from '@/components/ReactionButtons';
-import { getArticleComments, ArticleComment } from '@/services/openAiApi';
+import { getArticleComments, saveComment, ArticleComment } from '@/services/openAiApi';
 import { NewsArticle } from '@/services/newsApi';
 import { Clock, User } from 'lucide-react';
 
@@ -95,6 +95,25 @@ const ArticleDetail = () => {
     document.addEventListener('mouseup', handleSelection);
     return () => document.removeEventListener('mouseup', handleSelection);
   }, []);
+
+  // Function to add a new comment
+  const handleAddComment = (newComment: ArticleComment) => {
+    saveComment(newComment);
+    setComments(prev => [...prev, newComment]);
+  };
+
+  // Function to update an existing comment (e.g., for likes)
+  const handleUpdateComment = (updatedComment: ArticleComment) => {
+    // Update in local state
+    setComments(prev => 
+      prev.map(comment => 
+        comment.id === updatedComment.id ? updatedComment : comment
+      )
+    );
+    
+    // Update in storage
+    saveComment(updatedComment);
+  };
 
   if (!article) {
     return (
@@ -218,6 +237,16 @@ const ArticleDetail = () => {
             </div>
           </footer>
         </article>
+        
+        {/* Comments Section */}
+        <section className="max-w-3xl mx-auto mt-8 bg-white rounded-lg shadow-sm p-6">
+          <CommentsList 
+            comments={comments}
+            articleUrl={article.url}
+            onAddComment={handleAddComment}
+            onUpdateComment={handleUpdateComment}
+          />
+        </section>
         
         {/* Related Articles Section */}
         <section className="max-w-3xl mx-auto mt-8">

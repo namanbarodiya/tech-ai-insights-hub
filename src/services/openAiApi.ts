@@ -18,10 +18,12 @@ export interface ArticleComment {
   id: string;
   articleUrl: string;
   selectedText: string;
-  textPosition: { start: number; end: number };
+  textPosition: { start: number, end: number };
   comment: string;
   author: string;
   timestamp: number;
+  likes?: number;
+  parentId?: string;
 }
 
 // Interface for article reaction

@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +14,17 @@ interface CommentsOverlayProps {
   onClose: () => void;
 }
 
+// Predefined comment suggestions
+const COMMENT_SUGGESTIONS = [
+  "Great insights!",
+  "Interesting perspective...",
+  "How will this impact the industry?",
+  "Thanks for sharing!",
+  "I disagree because...",
+  "This reminds me of...",
+  "Could you elaborate more on...",
+];
+
 const CommentsOverlay: React.FC<CommentsOverlayProps> = ({ 
   articleUrl, 
   selectedText, 
@@ -21,6 +32,16 @@ const CommentsOverlay: React.FC<CommentsOverlayProps> = ({
   onClose 
 }) => {
   const [comment, setComment] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(true);
+  
+  useEffect(() => {
+    // Hide suggestions when user starts typing
+    if (comment.length > 0) {
+      setShowSuggestions(false);
+    } else {
+      setShowSuggestions(true);
+    }
+  }, [comment]);
   
   const handleSubmitComment = () => {
     if (!comment.trim()) return;
@@ -32,13 +53,19 @@ const CommentsOverlay: React.FC<CommentsOverlayProps> = ({
       textPosition,
       comment,
       author: 'Anonymous User',
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      likes: 0,
     };
     
     saveComment(newComment);
     toast.success("Comment added successfully");
     setComment('');
     onClose();
+  };
+  
+  const handleSuggestionClick = (suggestion: string) => {
+    setComment(suggestion);
+    setShowSuggestions(false);
   };
   
   return (
@@ -50,13 +77,29 @@ const CommentsOverlay: React.FC<CommentsOverlayProps> = ({
         </blockquote>
       </div>
       
-      <div className="mb-4">
+      <div className="mb-4 relative">
         <Input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add your comment..."
           className="w-full"
         />
+        
+        {showSuggestions && (
+          <div className="mt-2 flex flex-wrap gap-1">
+            {COMMENT_SUGGESTIONS.map((suggestion, index) => (
+              <Button 
+                key={index}
+                variant="outline"
+                size="sm"
+                className="text-xs py-1 h-auto bg-gray-50 hover:bg-gray-100"
+                onClick={() => handleSuggestionClick(suggestion)}
+              >
+                {suggestion}
+              </Button>
+            ))}
+          </div>
+        )}
       </div>
       
       <div className="flex justify-between">
