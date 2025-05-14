@@ -15,7 +15,7 @@ interface AskAIDialogProps {
 
 const AskAIDialog: React.FC<AskAIDialogProps> = ({ article, isOpen, onClose }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    { role: 'system', content: 'Ask me anything about this article.' }
+    { role: 'system', content: 'Ask me anything about this article. I am powered by Together.ai.' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -42,7 +42,7 @@ const AskAIDialog: React.FC<AskAIDialogProps> = ({ article, isOpen, onClose }) =
     setLoading(true);
     
     try {
-      // Generate AI response
+      // Generate AI response using real AI
       const articleContext = `${article.title} ${article.description || ''} ${article.content || ''}`;
       const response = await generateAIResponse([...messages, userMessage], articleContext);
       
@@ -73,7 +73,13 @@ const AskAIDialog: React.FC<AskAIDialogProps> = ({ article, isOpen, onClose }) =
         
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {messages.map((msg, index) => {
-            if (msg.role === 'system') return null;
+            if (msg.role === 'system') return (
+              <div key={index} className="flex justify-center mb-2">
+                <div className="bg-blue-50 text-blue-800 text-xs rounded-md px-3 py-1.5">
+                  {msg.content}
+                </div>
+              </div>
+            );
             
             return (
               <div 

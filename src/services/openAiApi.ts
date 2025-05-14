@@ -1,4 +1,3 @@
-
 import { toast } from "sonner";
 
 // Interface for AI summary
@@ -32,80 +31,120 @@ export interface ArticleReaction {
   count: number;
 }
 
-// Mock AI summary generation
+// Together.ai API key
+const TOGETHER_AI_API_KEY = "2a96dc3950262713ac195aebd099467750d785b0208daa9825babbbb85aaf4a0";
+const TOGETHER_AI_MODEL = "mistralai/Mixtral-8x7B-Instruct-v0.1";
+
+// Real AI summary generation using Together.ai
 export const generateArticleSummary = async (articleTitle: string, articleContent: string): Promise<string[]> => {
-  // In a real implementation, this would call the OpenAI API
-  console.log("Generating summary for:", articleTitle);
+  console.log("Generating real summary for:", articleTitle);
   
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1500));
-  
-  // For the MVP, we'll return mock summaries based on the article content
-  let points: string[];
-  
-  if (articleContent.includes("AI") || articleTitle.includes("AI")) {
-    points = [
-      "The article discusses advancements in artificial intelligence technology and its applications in business settings.",
-      "Key developments include new machine learning algorithms that improve accuracy by up to 30% compared to previous models.",
-      "Several enterprises reported significant cost savings after implementing AI solutions for routine processes.",
-      "Experts predict AI adoption will accelerate across industries over the next 12-18 months."
-    ];
-  } else if (articleContent.includes("cloud") || articleTitle.includes("Cloud")) {
-    points = [
-      "Major cloud service providers announced new enterprise-focused features for their platforms.",
-      "The article highlights cost optimization strategies for complex cloud infrastructures.",
-      "Security enhancements were a central focus of recent cloud platform updates.",
-      "Industry analysts project 35% growth in enterprise cloud adoption by next year."
-    ];
-  } else if (articleContent.includes("cyber") || articleTitle.includes("Security")) {
-    points = [
-      "New cybersecurity threats have emerged targeting remote work infrastructure.",
-      "The article details best practices for strengthening enterprise security posture.",
-      "Recent attacks have demonstrated vulnerabilities in commonly used business applications.",
-      "Security experts recommend a multi-layered approach combining technological and human factors."
-    ];
-  } else {
-    points = [
-      "The article covers recent technological developments relevant to IT decision-makers.",
-      "Key points include cost considerations and implementation strategies for enterprise settings.",
-      "Several case studies demonstrate successful digital transformation initiatives.",
-      "Industry experts provide insights on best practices and future technology trends."
+  try {
+    const response = await fetch("https://api.together.xyz/v1/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${TOGETHER_AI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: TOGETHER_AI_MODEL,
+        prompt: `Please summarize the following article in 4 concise bullet points that capture the main ideas.
+        
+        Title: ${articleTitle}
+        Content: ${articleContent}
+        
+        Format your response as four separate bullet points without any introduction or conclusion.`,
+        max_tokens: 500,
+        temperature: 0.7,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    
+    // Parse the bullet points from the response
+    const bulletText = data.choices[0]?.text || "";
+    const bulletPoints = bulletText
+      .split(/[-•*]\s?/)
+      .map(point => point.trim())
+      .filter(point => point.length > 5)
+      .slice(0, 4);
+    
+    // If we didn't get enough valid bullet points, return a fallback
+    if (bulletPoints.length < 2) {
+      return [
+        `Summary of "${articleTitle}"`,
+        "The article discusses developments in technology relevant to enterprise settings.",
+        "Key points include implementation strategies and business impacts.",
+        "Further details are available in the full article."
+      ];
+    }
+    
+    return bulletPoints;
+  } catch (error) {
+    console.error("Error generating summary with Together.ai:", error);
+    toast.error("Failed to generate AI summary");
+    
+    // Return fallback summary
+    return [
+      `Summary of "${articleTitle}"`,
+      "The article discusses developments in technology relevant to enterprise settings.",
+      "Key points include implementation strategies and business impacts.",
+      "Further details are available in the full article."
     ];
   }
-  
-  return points;
 };
 
-// Mock AI chat response generation
+// Real AI chat response generation using Together.ai
 export const generateAIResponse = async (messages: ChatMessage[], articleContext: string): Promise<string> => {
-  // In a real implementation, this would call the OpenAI API with the article context
-  console.log("Generating AI response for chat");
+  console.log("Generating real AI response for chat");
   
-  const lastMessage = messages[messages.length - 1];
-  
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 1000));
-  
-  // Simple keyword-based responses for the MVP
-  const userQuestion = lastMessage.content.toLowerCase();
-  
-  if (userQuestion.includes("summary") || userQuestion.includes("summarize")) {
-    return "This article covers key developments in enterprise technology, focusing on implementation strategies, cost considerations, and potential business impacts.";
-  } 
-  else if (userQuestion.includes("who") || userQuestion.includes("author")) {
-    return "This article was written by a technology journalist specializing in enterprise IT solutions.";
-  }
-  else if (userQuestion.includes("when") || userQuestion.includes("published")) {
-    return "This article was published recently, within the last week.";
-  }
-  else if (userQuestion.includes("why") || userQuestion.includes("importance")) {
-    return "This technology is important because it can significantly impact operational efficiency, cost management, and competitive advantage for enterprises.";
-  }
-  else if (userQuestion.includes("how") || userQuestion.includes("implement")) {
-    return "Implementation typically involves assessing current systems, developing a strategic roadmap, securing executive buy-in, running pilot programs, and planning for organization-wide deployment.";
-  }
-  else {
-    return "Based on the article, this technology represents a significant advancement for enterprise IT. Organizations implementing these solutions should consider their specific business needs, existing infrastructure, and long-term technology strategy.";
+  try {
+    // Prepare conversation history for the API
+    const latestUserMessage = messages.filter(msg => msg.role === 'user').pop()?.content || "";
+    
+    // Format the prompt with article context
+    const prompt = `You are a helpful AI assistant answering questions about news articles. 
+    
+    Article Context: ${articleContext}
+    
+    User Question: ${latestUserMessage}
+    
+    Provide a concise, helpful answer based on the article content.`;
+    
+    const response = await fetch("https://api.together.xyz/v1/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json", 
+        "Authorization": `Bearer ${TOGETHER_AI_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: TOGETHER_AI_MODEL,
+        prompt: prompt,
+        max_tokens: 300,
+        temperature: 0.7,
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const data = await response.json();
+    const aiResponse = data.choices[0]?.text?.trim() || "";
+    
+    if (!aiResponse) {
+      throw new Error("Empty response from AI");
+    }
+    
+    return aiResponse;
+  } catch (error) {
+    console.error("Error generating AI response with Together.ai:", error);
+    toast.error("Failed to generate AI response");
+    return "I'm sorry, I encountered an error processing your question. Please try again.";
   }
 };
 
